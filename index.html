@@ -13,18 +13,95 @@
       body {
         font-family: "Inter", sans-serif;
       }
-      textarea::-webkit-scrollbar {
+      textarea::-webkit-scrollbar,
+      .status-panel::-webkit-scrollbar {
         width: 8px;
       }
-      textarea::-webkit-scrollbar-track {
+      textarea::-webkit-scrollbar-track,
+      .status-panel::-webkit-scrollbar-track {
         background: #f1f1f1;
       }
-      textarea::-webkit-scrollbar-thumb {
+      textarea::-webkit-scrollbar-thumb,
+      .status-panel::-webkit-scrollbar-thumb {
         background: #c1c1c1;
         border-radius: 4px;
       }
-      textarea::-webkit-scrollbar-thumb:hover {
+      textarea::-webkit-scrollbar-thumb:hover,
+      .status-panel::-webkit-scrollbar-thumb:hover {
         background: #a8a8a8;
+      }
+      .status-panel {
+        overflow-y: auto;
+      }
+      .status-line {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 3px 0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+        font-size: 0.875rem;
+      }
+      .status-line .num {
+        font-weight: 600;
+        color: #334155;
+        min-width: 40px;
+      }
+      .status-line .tag {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: "Inter", sans-serif;
+      }
+      .status-line .tag.available {
+        color: #166534;
+        background: #dcfce7;
+      }
+      .status-line .tag.not-found {
+        color: #991b1b;
+        background: #fee2e2;
+      }
+      .verify-line {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 0;
+        font-size: 0.75rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+        border-bottom: 1px solid #f1f5f9;
+      }
+      .verify-line:last-child {
+        border-bottom: none;
+      }
+      .verify-line .v-id {
+        color: #475569;
+        flex-shrink: 0;
+      }
+      .verify-line .v-arrow {
+        color: #94a3b8;
+      }
+      .verify-line .v-code {
+        color: #64748b;
+        font-weight: 600;
+        flex-shrink: 0;
+        min-width: 32px;
+      }
+      .verify-line .v-badge {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-family: "Inter", sans-serif;
+        margin-left: auto;
+        flex-shrink: 0;
+      }
+      .verify-line .v-badge.present {
+        color: #166534;
+        background: #dcfce7;
+      }
+      .verify-line .v-badge.absent {
+        color: #991b1b;
+        background: #fee2e2;
       }
     </style>
   </head>
@@ -55,25 +132,33 @@
 
       <!-- Main Grid -->
       <div
-        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 h-[calc(100vh-200px)] min-h-[600px]"
+        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5 h-[calc(100vh-200px)] min-h-[600px]"
       >
         <!-- Column 1: Master List Input -->
         <div
           class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
         >
           <div
-            class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center"
+            class="p-4 bg-slate-100 border-b border-slate-200 flex flex-col gap-3"
           >
-            <h2 class="font-semibold text-slate-700 flex items-center gap-2">
-              <span class="w-2 h-6 bg-blue-500 rounded-full"></span>
-              1. Master List
-            </h2>
+            <div class="flex justify-between items-center">
+              <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+                <span class="w-2 h-6 bg-blue-500 rounded-full"></span>
+                1. Master List
+              </h2>
+            </div>
+            <select
+              id="sectionDropdown"
+              class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-700 font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer shadow-sm hover:border-blue-400 transition-colors"
+            >
+              <option value="">-- Select a Section --</option>
+            </select>
           </div>
           <div class="flex-1 p-4 flex flex-col">
             <textarea
               id="masterInput"
               class="flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm leading-relaxed text-slate-600 placeholder-slate-400"
-              placeholder="Paste full NIAT IDs here...&#10;N24H01A0505&#10;N24H01A0641&#10;..."
+              placeholder="Select a section above or paste IDs here...&#10;N24H01A0505&#10;N24H01A0641&#10;..."
             ></textarea>
             <div
               class="mt-2 text-xs text-slate-400 text-right"
@@ -104,28 +189,48 @@
             <textarea
               id="shorthandInput"
               class="flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none font-mono text-sm leading-relaxed text-slate-600 placeholder-slate-400"
-              placeholder="Paste numbers here (any format)...&#10;1, 75, 335&#10;or separate lines"
+              placeholder="Type or paste shorthand numbers here...&#10;e.g. 301, 75, 12&#10;Separate by comma, space, or new line"
             ></textarea>
           </div>
         </div>
 
-        <!-- Column 3: Verification (NEW) -->
+        <!-- Column 3: Available in Masterlist -->
+        <div
+          class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
+        >
+          <div class="p-4 bg-slate-100 border-b border-slate-200">
+            <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+              <span class="w-2 h-6 bg-cyan-500 rounded-full"></span>
+              3. Available in Masterlist
+            </h2>
+          </div>
+          <div class="flex-1 p-4 flex flex-col min-h-0">
+            <div
+              id="statusPanel"
+              class="status-panel flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg text-slate-400 text-sm italic overflow-y-auto"
+            >
+              Status will appear here...
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 4: Verification -->
         <div
           class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
         >
           <div class="p-4 bg-slate-100 border-b border-slate-200">
             <h2 class="font-semibold text-slate-700 flex items-center gap-2">
               <span class="w-2 h-6 bg-purple-500 rounded-full"></span>
-              3. Verification
+              4. Verification
             </h2>
           </div>
-          <div class="flex-1 p-4 flex flex-col">
-            <textarea
-              id="verificationOutput"
-              readonly
-              class="flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none resize-none font-mono text-xs leading-relaxed text-slate-600 whitespace-pre"
-              placeholder="Check here if names are matching..."
-            ></textarea>
+          <div class="flex-1 p-4 flex flex-col min-h-0">
+            <div
+              id="verificationPanel"
+              class="flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg overflow-y-auto text-slate-400 text-sm italic"
+            >
+              Verification will appear here...
+            </div>
           </div>
         </div>
 
@@ -138,7 +243,7 @@
           >
             <h2 class="font-semibold text-slate-700 flex items-center gap-2">
               <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
-              4. Final Result
+              5. Final Result
             </h2>
             <div class="text-xs font-mono">
               <span class="text-emerald-600 font-bold" id="presentCount"
@@ -186,13 +291,54 @@
       // DOM Elements
       const masterInput = document.getElementById("masterInput");
       const shorthandInput = document.getElementById("shorthandInput");
-      const verificationOutput = document.getElementById("verificationOutput");
+      const statusPanel = document.getElementById("statusPanel");
+      const verificationPanel = document.getElementById("verificationPanel");
       const resultOutput = document.getElementById("resultOutput");
       const masterCountLabel = document.getElementById("masterCount");
       const presentCountLabel = document.getElementById("presentCount");
       const absentCountLabel = document.getElementById("absentCount");
       const copyBtn = document.getElementById("copyBtn");
       const detectedCountLabel = document.getElementById("detectedCount");
+      const sectionDropdown = document.getElementById("sectionDropdown");
+
+      // Attendance data cache
+      let attendanceData = null;
+
+      // Load sections from JSON on page load
+      async function loadSections() {
+        try {
+          const response = await fetch("Attendance_List.json");
+          const data = await response.json();
+          attendanceData = data.attendance;
+
+          Object.keys(attendanceData).forEach((section) => {
+            const option = document.createElement("option");
+            option.value = section;
+            option.textContent = `Section ${section} (${attendanceData[section].length} students)`;
+            sectionDropdown.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Failed to load Attendance_List.json:", error);
+          sectionDropdown.innerHTML =
+            '<option value="">Error loading sections</option>';
+        }
+      }
+
+      // Handle section selection
+      sectionDropdown.addEventListener("change", () => {
+        const selectedSection = sectionDropdown.value;
+        if (!selectedSection || !attendanceData) return;
+
+        const ids = attendanceData[selectedSection];
+        masterInput.value = ids.join("\n");
+        updateMasterCount();
+
+        if (shorthandInput.value.trim()) {
+          processAttendance();
+        }
+      });
+
+      loadSections();
 
       // Event Listeners
       masterInput.addEventListener("input", () => {
@@ -200,7 +346,6 @@
       });
 
       shorthandInput.addEventListener("paste", () => {
-        // Small timeout to let the pasted content populate the textarea
         setTimeout(() => processAttendance(), 0);
       });
 
@@ -213,8 +358,12 @@
       function clearCurrentMaster() {
         masterInput.value = "";
         shorthandInput.value = "";
-        verificationOutput.value = "";
+        verificationPanel.innerHTML =
+          '<span class="text-slate-400 text-sm italic">Verification will appear here...</span>';
         resultOutput.value = "";
+        sectionDropdown.value = "";
+        statusPanel.innerHTML =
+          '<span class="text-slate-400 text-sm italic">Status will appear here...</span>';
         updateMasterCount();
         updateCounts(0, 0);
         detectedCountLabel.textContent = "";
@@ -234,7 +383,6 @@
 
       function processAttendance() {
         // 1. Parse Master List
-        // Split by newline or comma to be safe
         const masterLines = masterInput.value
           .split(/[\n,]+/)
           .map((l) => l.trim())
@@ -250,33 +398,49 @@
           return;
         }
 
-        // 2. Parse Shorthand Input (Robust Parsing)
-        // Split by newline, comma, tab, or space to handle all paste formats
+        // Build master last-4 set for status lookup
+        const masterLast4Set = new Set(
+          masterLines.map((id) => (id.length >= 4 ? id.slice(-4) : id)),
+        );
+
+        // 2. Parse Shorthand Input
         const tokens = shorthandInput.value.split(/[\n,\t\s]+/);
         const presentSet = new Set();
         let validTokensFound = 0;
 
-        tokens.forEach((token) => {
-          // Remove quotes and whitespace
-          let cleanToken = token.trim().replace(/['"]/g, "");
+        // Clear and rebuild status panel
+        statusPanel.innerHTML = "";
 
+        tokens.forEach((token) => {
+          let cleanToken = token.trim().replace(/['"]/g, "");
           if (!cleanToken) return;
 
-          // Check if numeric (shorthand)
+          let padded = null;
+
           if (/^\d+$/.test(cleanToken)) {
-            // Pad with zeros to length 4 (e.g. "1" -> "0001")
-            // If longer than 4, take last 4 (e.g. "12345" -> "2345")
-            const padded = cleanToken.padStart(4, "0").slice(-4);
+            padded = cleanToken.padStart(4, "0").slice(-4);
+            presentSet.add(padded);
+            validTokensFound++;
+          } else if (cleanToken.length >= 4) {
+            padded = cleanToken.slice(-4);
             presentSet.add(padded);
             validTokensFound++;
           }
-          // Check if full ID (alphanumeric)
-          else if (cleanToken.length >= 4) {
-            // Assume it's a full ID pasted by mistake, take last 4
-            presentSet.add(cleanToken.slice(-4));
-            validTokensFound++;
+
+          // Add status line to panel
+          if (padded !== null) {
+            const isAvailable = masterLast4Set.has(padded);
+            const line = document.createElement("div");
+            line.className = "status-line";
+            line.innerHTML = `<span class="num">${cleanToken}</span><span class="tag ${isAvailable ? "available" : "not-found"}">${isAvailable ? "Available" : "Not Found"}</span>`;
+            statusPanel.appendChild(line);
           }
         });
+
+        if (validTokensFound === 0) {
+          statusPanel.innerHTML =
+            '<span class="text-slate-400 text-sm italic">Status will appear here...</span>';
+        }
 
         detectedCountLabel.textContent = `(Found ${validTokensFound} codes)`;
 
@@ -284,26 +448,26 @@
         let presentCount = 0;
         let absentCount = 0;
         const results = [];
-        const verificationLines = [];
+
+        // Build verification panel
+        verificationPanel.innerHTML = "";
 
         masterLines.forEach((id) => {
-          // Extract last 4 chars from Master ID
           const last4 = id.length >= 4 ? id.slice(-4) : id;
+          const isPresent = presentSet.has(last4);
 
-          if (presentSet.has(last4)) {
-            results.push("Present");
-            verificationLines.push(`${id} -> ${last4} -> Present`);
-            presentCount++;
-          } else {
-            results.push("Absent");
-            verificationLines.push(`${id} -> NA   -> Absent`);
-            absentCount++;
-          }
+          results.push(isPresent ? "Present" : "Absent");
+          if (isPresent) presentCount++;
+          else absentCount++;
+
+          const line = document.createElement("div");
+          line.className = "verify-line";
+          line.innerHTML = `<span class="v-id">${id}</span><span class="v-arrow">&#8594;</span><span class="v-code">${isPresent ? last4 : "NA"}</span><span class="v-badge ${isPresent ? "present" : "absent"}">${isPresent ? "Present" : "Absent"}</span>`;
+          verificationPanel.appendChild(line);
         });
 
         // 4. Output
         resultOutput.value = results.join("\n");
-        verificationOutput.value = verificationLines.join("\n");
         updateCounts(presentCount, absentCount);
       }
 
