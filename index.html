@@ -204,6 +204,10 @@
         setTimeout(() => processAttendance(), 0);
       });
 
+      shorthandInput.addEventListener("input", () => {
+        processAttendance();
+      });
+
       // Functions
 
       function clearCurrentMaster() {
