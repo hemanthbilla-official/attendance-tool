@@ -194,14 +194,14 @@
       const copyBtn = document.getElementById("copyBtn");
       const detectedCountLabel = document.getElementById("detectedCount");
 
-      // Event Listeners — auto-compare on every input
+      // Event Listeners
       masterInput.addEventListener("input", () => {
         updateMasterCount();
-        processAttendance();
       });
 
-      shorthandInput.addEventListener("input", () => {
-        processAttendance();
+      shorthandInput.addEventListener("paste", () => {
+        // Small timeout to let the pasted content populate the textarea
+        setTimeout(() => processAttendance(), 0);
       });
 
       // Functions
