@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attendance Reconciliation Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      textarea::-webkit-scrollbar {
+        width: 8px;
+      }
+      textarea::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      textarea::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      textarea::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 min-h-screen p-4 md:p-8 text-slate-800">
+    <div class="max-w-[1600px] mx-auto">
+      <!-- Header Section -->
+      <header
+        class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6"
+      >
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900">
+            Attendance Reconciliation Tool
+          </h1>
+          <p class="text-slate-500 text-sm mt-1">
+            Convert shorthand IDs into sheet-ready status columns.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button
+            onclick="clearCurrentMaster()"
+            class="text-sm text-red-600 hover:text-red-800 hover:bg-red-50 px-4 py-2 rounded border border-red-200 transition-colors"
+          >
+            Reset All
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Grid -->
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 h-[calc(100vh-200px)] min-h-[600px]"
+      >
+        <!-- Column 1: Master List Input -->
+        <div
+          class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
+        >
+          <div
+            class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center"
+          >
+            <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+              <span class="w-2 h-6 bg-blue-500 rounded-full"></span>
+              1. Master List
+            </h2>
+          </div>
+          <div class="flex-1 p-4 flex flex-col">
+            <textarea
+              id="masterInput"
+              class="flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm leading-relaxed text-slate-600 placeholder-slate-400"
+              placeholder="Paste full NIAT IDs here...&#10;N24H01A0505&#10;N24H01A0641&#10;..."
+            ></textarea>
+            <div
+              class="mt-2 text-xs text-slate-400 text-right"
+              id="masterCount"
+            >
+              0 IDs loaded
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 2: Daily Input -->
+        <div
+          class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative"
+        >
+          <div
+            class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center"
+          >
+            <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+              <span class="w-2 h-6 bg-amber-500 rounded-full"></span>
+              2. Daily Shorthand
+            </h2>
+            <span
+              class="text-xs font-medium text-amber-600"
+              id="detectedCount"
+            ></span>
+          </div>
+          <div class="flex-1 p-4 flex flex-col">
+            <textarea
+              id="shorthandInput"
+              class="flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none font-mono text-sm leading-relaxed text-slate-600 placeholder-slate-400"
+              placeholder="Paste numbers here (any format)...&#10;1, 75, 335&#10;or separate lines"
+            ></textarea>
+
+            <button
+              onclick="processAttendance()"
+              class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-all flex justify-center items-center gap-2 group"
+            >
+              <span>Generate</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 group-hover:translate-x-1 transition-transform"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Column 3: Verification (NEW) -->
+        <div
+          class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
+        >
+          <div class="p-4 bg-slate-100 border-b border-slate-200">
+            <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+              <span class="w-2 h-6 bg-purple-500 rounded-full"></span>
+              3. Verification
+            </h2>
+          </div>
+          <div class="flex-1 p-4 flex flex-col">
+            <textarea
+              id="verificationOutput"
+              readonly
+              class="flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none resize-none font-mono text-xs leading-relaxed text-slate-600 whitespace-pre"
+              placeholder="Check here if names are matching..."
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Column 4: Final Results -->
+        <div
+          class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
+        >
+          <div
+            class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center"
+          >
+            <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+              <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
+              4. Final Result
+            </h2>
+            <div class="text-xs font-mono">
+              <span class="text-emerald-600 font-bold" id="presentCount"
+                >P: 0</span
+              >
+              |
+              <span class="text-red-500 font-bold" id="absentCount">A: 0</span>
+            </div>
+          </div>
+          <div class="flex-1 p-4 flex flex-col relative group">
+            <textarea
+              id="resultOutput"
+              readonly
+              class="flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none resize-none font-mono text-sm leading-relaxed text-slate-800"
+              placeholder="Copy this column..."
+            ></textarea>
+
+            <button
+              onclick="copyToClipboard()"
+              id="copyBtn"
+              class="absolute bottom-6 right-6 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2 px-4 rounded shadow-lg flex items-center gap-2 transition-all opacity-90 hover:opacity-100"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                />
+              </svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // DOM Elements
+      const masterInput = document.getElementById("masterInput");
+      const shorthandInput = document.getElementById("shorthandInput");
+      const verificationOutput = document.getElementById("verificationOutput");
+      const resultOutput = document.getElementById("resultOutput");
+      const masterCountLabel = document.getElementById("masterCount");
+      const presentCountLabel = document.getElementById("presentCount");
+      const absentCountLabel = document.getElementById("absentCount");
+      const copyBtn = document.getElementById("copyBtn");
+      const detectedCountLabel = document.getElementById("detectedCount");
+
+      // Event Listeners
+      masterInput.addEventListener("input", () => {
+        updateMasterCount();
+      });
+
+      // Functions
+
+      function clearCurrentMaster() {
+        masterInput.value = "";
+        shorthandInput.value = "";
+        verificationOutput.value = "";
+        resultOutput.value = "";
+        updateMasterCount();
+        updateCounts(0, 0);
+        detectedCountLabel.textContent = "";
+      }
+
+      function updateMasterCount() {
+        const count = masterInput.value
+          .split("\n")
+          .filter((line) => line.trim() !== "").length;
+        masterCountLabel.textContent = `${count} IDs loaded`;
+      }
+
+      function updateCounts(present, absent) {
+        presentCountLabel.textContent = `P: ${present}`;
+        absentCountLabel.textContent = `A: ${absent}`;
+      }
+
+      function processAttendance() {
+        // 1. Parse Master List
+        // Split by newline or comma to be safe
+        const masterLines = masterInput.value
+          .split(/[\n,]+/)
+          .map((l) => l.trim())
+          .filter((l) => l !== "");
+
+        if (masterLines.length === 0) {
+          masterInput.focus();
+          masterInput.classList.add("ring-2", "ring-red-400");
+          setTimeout(
+            () => masterInput.classList.remove("ring-2", "ring-red-400"),
+            1500,
+          );
+          return;
+        }
+
+        // 2. Parse Shorthand Input (Robust Parsing)
+        // Split by newline, comma, tab, or space to handle all paste formats
+        const tokens = shorthandInput.value.split(/[\n,\t\s]+/);
+        const presentSet = new Set();
+        let validTokensFound = 0;
+
+        tokens.forEach((token) => {
+          // Remove quotes and whitespace
+          let cleanToken = token.trim().replace(/['"]/g, "");
+
+          if (!cleanToken) return;
+
+          // Check if numeric (shorthand)
+          if (/^\d+$/.test(cleanToken)) {
+            // Pad with zeros to length 4 (e.g. "1" -> "0001")
+            // If longer than 4, take last 4 (e.g. "12345" -> "2345")
+            const padded = cleanToken.padStart(4, "0").slice(-4);
+            presentSet.add(padded);
+            validTokensFound++;
+          }
+          // Check if full ID (alphanumeric)
+          else if (cleanToken.length >= 4) {
+            // Assume it's a full ID pasted by mistake, take last 4
+            presentSet.add(cleanToken.slice(-4));
+            validTokensFound++;
+          }
+        });
+
+        detectedCountLabel.textContent = `(Found ${validTokensFound} codes)`;
+
+        // 3. Generate Status
+        let presentCount = 0;
+        let absentCount = 0;
+        const results = [];
+        const verificationLines = [];
+
+        masterLines.forEach((id) => {
+          // Extract last 4 chars from Master ID
+          const last4 = id.length >= 4 ? id.slice(-4) : id;
+
+          if (presentSet.has(last4)) {
+            results.push("Present");
+            verificationLines.push(`${id} -> ${last4} -> Present`);
+            presentCount++;
+          } else {
+            results.push("Absent");
+            verificationLines.push(`${id} -> NA   -> Absent`);
+            absentCount++;
+          }
+        });
+
+        // 4. Output
+        resultOutput.value = results.join("\n");
+        verificationOutput.value = verificationLines.join("\n");
+        updateCounts(presentCount, absentCount);
+      }
+
+      function copyToClipboard() {
+        const text = resultOutput.value;
+        if (!text) return;
+
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    Copied!
+                `;
+            copyBtn.classList.add("bg-slate-800");
+
+            setTimeout(() => {
+              copyBtn.innerHTML = originalText;
+              copyBtn.classList.remove("bg-slate-800");
+            }, 2000);
+          })
+          .catch(() => {
+            // Fallback for environments where clipboard API is unavailable
+            resultOutput.select();
+            document.execCommand("copy");
+          });
+      }
+    </script>
+  </body>
+</html>
