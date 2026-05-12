@@ -3,501 +3,104 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Attendance Reconciliation Tool</title>
+    <title>Server Maintenance | System Offline</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap"
       rel="stylesheet"
     />
     <style>
       body {
-        font-family: "Inter", sans-serif;
+        font-family: "Outfit", sans-serif;
+        background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
       }
-      textarea::-webkit-scrollbar,
-      .status-panel::-webkit-scrollbar {
-        width: 8px;
+      .glass-card {
+        background: rgba(30, 41, 59, 0.5);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
       }
-      textarea::-webkit-scrollbar-track,
-      .status-panel::-webkit-scrollbar-track {
-        background: #f1f1f1;
+      @keyframes pulse-red {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.7;
+          transform: scale(1.05);
+        }
       }
-      textarea::-webkit-scrollbar-thumb,
-      .status-panel::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 4px;
-      }
-      textarea::-webkit-scrollbar-thumb:hover,
-      .status-panel::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8;
-      }
-      .status-panel {
-        overflow-y: auto;
-      }
-      .status-line {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 3px 0;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-        font-size: 0.875rem;
-      }
-      .status-line .num {
-        font-weight: 600;
-        color: #334155;
-        min-width: 40px;
-      }
-      .status-line .tag {
-        font-size: 11px;
-        font-weight: 600;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-family: "Inter", sans-serif;
-      }
-      .status-line .tag.available {
-        color: #166534;
-        background: #dcfce7;
-      }
-      .status-line .tag.not-found {
-        color: #991b1b;
-        background: #fee2e2;
-      }
-      .verify-line {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 3px 0;
-        font-size: 0.75rem;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-        border-bottom: 1px solid #f1f5f9;
-      }
-      .verify-line:last-child {
-        border-bottom: none;
-      }
-      .verify-line .v-id {
-        color: #475569;
-        flex-shrink: 0;
-      }
-      .verify-line .v-arrow {
-        color: #94a3b8;
-      }
-      .verify-line .v-code {
-        color: #64748b;
-        font-weight: 600;
-        flex-shrink: 0;
-        min-width: 32px;
-      }
-      .verify-line .v-badge {
-        font-size: 10px;
-        font-weight: 700;
-        padding: 1px 6px;
-        border-radius: 4px;
-        font-family: "Inter", sans-serif;
-        margin-left: auto;
-        flex-shrink: 0;
-      }
-      .verify-line .v-badge.present {
-        color: #166534;
-        background: #dcfce7;
-      }
-      .verify-line .v-badge.absent {
-        color: #991b1b;
-        background: #fee2e2;
+      .status-dot {
+        animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       }
     </style>
   </head>
-  <body class="bg-slate-50 min-h-screen p-4 md:p-8 text-slate-800">
-    <div class="max-w-[1600px] mx-auto">
-      <!-- Header Section -->
-      <header
-        class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6"
-      >
-        <div>
-          <h1 class="text-2xl font-bold text-slate-900">
-            Attendance Reconciliation Tool
-          </h1>
-          <p class="text-slate-500 text-sm mt-1">
-            Convert shorthand IDs into sheet-ready status columns.
-          </p>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <button
-            onclick="clearCurrentMaster()"
-            class="text-sm text-red-600 hover:text-red-800 hover:bg-red-50 px-4 py-2 rounded border border-red-200 transition-colors"
-          >
-            Reset All
-          </button>
-        </div>
-      </header>
-
-      <!-- Main Grid -->
+  <body
+    class="min-h-screen flex items-center justify-center p-6 text-slate-200"
+  >
+    <div class="max-w-sm w-full text-center">
       <div
-        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5 h-[calc(100vh-200px)] min-h-[600px]"
+        class="glass-card rounded-2xl p-5 shadow-2xl relative overflow-hidden"
       >
-        <!-- Column 1: Master List Input -->
+        <!-- Decorative Light Leak -->
         <div
-          class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
-        >
-          <div
-            class="p-4 bg-slate-100 border-b border-slate-200 flex flex-col gap-3"
-          >
-            <div class="flex justify-between items-center">
-              <h2 class="font-semibold text-slate-700 flex items-center gap-2">
-                <span class="w-2 h-6 bg-blue-500 rounded-full"></span>
-                1. Master List
-              </h2>
-            </div>
-            <select
-              id="sectionDropdown"
-              class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-700 font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer shadow-sm hover:border-blue-400 transition-colors"
-            >
-              <option value="">-- Select a Section --</option>
-            </select>
-          </div>
-          <div class="flex-1 p-4 flex flex-col">
-            <textarea
-              id="masterInput"
-              class="flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm leading-relaxed text-slate-600 placeholder-slate-400"
-              placeholder="Select a section above or paste IDs here...&#10;N24H01A0505&#10;N24H01A0641&#10;..."
-            ></textarea>
-            <div
-              class="mt-2 text-xs text-slate-400 text-right"
-              id="masterCount"
-            >
-              0 IDs loaded
-            </div>
-          </div>
-        </div>
+          class="absolute -top-24 -right-24 w-64 h-64 bg-red-500/10 rounded-full blur-3xl"
+        ></div>
 
-        <!-- Column 2: Daily Input -->
-        <div
-          class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative"
-        >
+        <div class="relative z-10">
+          <!-- Status Badge -->
           <div
-            class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center"
+            class="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full mb-3"
           >
-            <h2 class="font-semibold text-slate-700 flex items-center gap-2">
-              <span class="w-2 h-6 bg-amber-500 rounded-full"></span>
-              2. Daily Shorthand
-            </h2>
+            <span class="w-1.5 h-1.5 bg-red-500 rounded-full status-dot"></span>
             <span
-              class="text-xs font-medium text-amber-600"
-              id="detectedCount"
-            ></span>
-          </div>
-          <div class="flex-1 p-4 flex flex-col">
-            <textarea
-              id="shorthandInput"
-              class="flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none font-mono text-sm leading-relaxed text-slate-600 placeholder-slate-400"
-              placeholder="Type or paste shorthand numbers here...&#10;e.g. 301, 75, 12&#10;Separate by comma, space, or new line"
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- Column 3: Available in Masterlist -->
-        <div
-          class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
-        >
-          <div class="p-4 bg-slate-100 border-b border-slate-200">
-            <h2 class="font-semibold text-slate-700 flex items-center gap-2">
-              <span class="w-2 h-6 bg-cyan-500 rounded-full"></span>
-              3. Available in Masterlist
-            </h2>
-          </div>
-          <div class="flex-1 p-4 flex flex-col min-h-0">
-            <div
-              id="statusPanel"
-              class="status-panel flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg text-slate-400 text-sm italic overflow-y-auto"
+              class="text-[10px] font-bold uppercase tracking-widest text-red-400"
+              >System Critical</span
             >
-              Status will appear here...
-            </div>
           </div>
-        </div>
 
-        <!-- Column 4: Verification -->
-        <div
-          class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
-        >
-          <div class="p-4 bg-slate-100 border-b border-slate-200">
-            <h2 class="font-semibold text-slate-700 flex items-center gap-2">
-              <span class="w-2 h-6 bg-purple-500 rounded-full"></span>
-              4. Verification
-            </h2>
-          </div>
-          <div class="flex-1 p-4 flex flex-col min-h-0">
-            <div
-              id="verificationPanel"
-              class="flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg overflow-y-auto text-slate-400 text-sm italic"
-            >
-              Verification will appear here...
-            </div>
-          </div>
-        </div>
-
-        <!-- Column 4: Final Results -->
-        <div
-          class="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
-        >
-          <div
-            class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center"
+          <!-- Main Content -->
+          <h1
+            class="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent leading-tight"
           >
-            <h2 class="font-semibold text-slate-700 flex items-center gap-2">
-              <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
-              5. Final Result
-            </h2>
-            <div class="text-xs font-mono">
-              <span class="text-emerald-600 font-bold" id="presentCount"
-                >P: 0</span
-              >
-              |
-              <span class="text-red-500 font-bold" id="absentCount">A: 0</span>
-            </div>
-          </div>
-          <div class="flex-1 p-4 flex flex-col relative group">
-            <textarea
-              id="resultOutput"
-              readonly
-              class="flex-1 w-full p-4 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none resize-none font-mono text-sm leading-relaxed text-slate-800"
-              placeholder="Copy this column..."
-            ></textarea>
+            Server facing issues.
+          </h1>
 
-            <button
-              onclick="copyToClipboard()"
-              id="copyBtn"
-              class="absolute bottom-6 right-6 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2 px-4 rounded shadow-lg flex items-center gap-2 transition-all opacity-90 hover:opacity-100"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
-                />
-              </svg>
-              Copy
-            </button>
+          <p
+            class="text-sm md:text-base text-slate-400 mb-4 font-light leading-relaxed"
+          >
+            Owner is
+            <span class="text-red-400 font-semibold italic">pissed off</span>.
+            <br />
+            Stay away until the mood improves.
+          </p>
+
+          <!-- Image Container -->
+          <div class="relative inline-block group">
+            <div
+              class="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-xl blur-lg group-hover:opacity-100 transition duration-1000 group-hover:duration-200"
+            ></div>
+            <img
+              src="frustated-cat.webp"
+              alt="Frustrated Cat"
+              class="relative rounded-xl w-full max-h-40 object-contain mx-auto shadow-2xl border border-white/5 transition-transform duration-500 hover:scale-[1.02]"
+            />
+          </div>
+
+          <!-- Technical Details -->
+          <div
+            class="mt-6 pt-4 border-t border-white/5 flex flex-col items-center gap-2 text-[9px] font-medium text-slate-500 uppercase tracking-widest"
+          >
+            <span>Code: 503 Service Unavailable</span>
+            <span>Action: Awaiting owner's calm</span>
+            <span>Priority: Absolute Zero</span>
           </div>
         </div>
       </div>
+
+      <p class="mt-8 text-slate-600 text-sm font-medium">
+        &copy; 2026 Attendance Tool • Under Unplanned Maintenance
+      </p>
     </div>
-
-    <script>
-      // DOM Elements
-      const masterInput = document.getElementById("masterInput");
-      const shorthandInput = document.getElementById("shorthandInput");
-      const statusPanel = document.getElementById("statusPanel");
-      const verificationPanel = document.getElementById("verificationPanel");
-      const resultOutput = document.getElementById("resultOutput");
-      const masterCountLabel = document.getElementById("masterCount");
-      const presentCountLabel = document.getElementById("presentCount");
-      const absentCountLabel = document.getElementById("absentCount");
-      const copyBtn = document.getElementById("copyBtn");
-      const detectedCountLabel = document.getElementById("detectedCount");
-      const sectionDropdown = document.getElementById("sectionDropdown");
-
-      // Attendance data cache
-      let attendanceData = null;
-
-      // Load sections from JSON on page load
-      async function loadSections() {
-        try {
-          const response = await fetch("Attendance_List.json");
-          const data = await response.json();
-          attendanceData = data.attendance;
-
-          Object.keys(attendanceData).forEach((section) => {
-            const option = document.createElement("option");
-            option.value = section;
-            option.textContent = `Section ${section} (${attendanceData[section].length} students)`;
-            sectionDropdown.appendChild(option);
-          });
-        } catch (error) {
-          console.error("Failed to load Attendance_List.json:", error);
-          sectionDropdown.innerHTML =
-            '<option value="">Error loading sections</option>';
-        }
-      }
-
-      // Handle section selection
-      sectionDropdown.addEventListener("change", () => {
-        const selectedSection = sectionDropdown.value;
-        if (!selectedSection || !attendanceData) return;
-
-        const ids = attendanceData[selectedSection];
-        masterInput.value = ids.join("\n");
-        updateMasterCount();
-
-        if (shorthandInput.value.trim()) {
-          processAttendance();
-        }
-      });
-
-      loadSections();
-
-      // Event Listeners
-      masterInput.addEventListener("input", () => {
-        updateMasterCount();
-      });
-
-      shorthandInput.addEventListener("paste", () => {
-        setTimeout(() => processAttendance(), 0);
-      });
-
-      shorthandInput.addEventListener("input", () => {
-        processAttendance();
-      });
-
-      // Functions
-
-      function clearCurrentMaster() {
-        masterInput.value = "";
-        shorthandInput.value = "";
-        verificationPanel.innerHTML =
-          '<span class="text-slate-400 text-sm italic">Verification will appear here...</span>';
-        resultOutput.value = "";
-        sectionDropdown.value = "";
-        statusPanel.innerHTML =
-          '<span class="text-slate-400 text-sm italic">Status will appear here...</span>';
-        updateMasterCount();
-        updateCounts(0, 0);
-        detectedCountLabel.textContent = "";
-      }
-
-      function updateMasterCount() {
-        const count = masterInput.value
-          .split("\n")
-          .filter((line) => line.trim() !== "").length;
-        masterCountLabel.textContent = `${count} IDs loaded`;
-      }
-
-      function updateCounts(present, absent) {
-        presentCountLabel.textContent = `P: ${present}`;
-        absentCountLabel.textContent = `A: ${absent}`;
-      }
-
-      function processAttendance() {
-        // 1. Parse Master List
-        const masterLines = masterInput.value
-          .split(/[\n,]+/)
-          .map((l) => l.trim())
-          .filter((l) => l !== "");
-
-        if (masterLines.length === 0) {
-          masterInput.focus();
-          masterInput.classList.add("ring-2", "ring-red-400");
-          setTimeout(
-            () => masterInput.classList.remove("ring-2", "ring-red-400"),
-            1500,
-          );
-          return;
-        }
-
-        // Build master last-4 set for status lookup
-        const masterLast4Set = new Set(
-          masterLines.map((id) => (id.length >= 4 ? id.slice(-4) : id)),
-        );
-
-        // 2. Parse Shorthand Input
-        const tokens = shorthandInput.value.split(/[\n,\t\s]+/);
-        const presentSet = new Set();
-        let validTokensFound = 0;
-
-        // Clear and rebuild status panel
-        statusPanel.innerHTML = "";
-
-        tokens.forEach((token) => {
-          let cleanToken = token.trim().replace(/['"]/g, "");
-          if (!cleanToken) return;
-
-          let padded = null;
-
-          if (/^\d+$/.test(cleanToken)) {
-            padded = cleanToken.padStart(4, "0").slice(-4);
-            presentSet.add(padded);
-            validTokensFound++;
-          } else if (cleanToken.length >= 4) {
-            padded = cleanToken.slice(-4);
-            presentSet.add(padded);
-            validTokensFound++;
-          }
-
-          // Add status line to panel
-          if (padded !== null) {
-            const isAvailable = masterLast4Set.has(padded);
-            const line = document.createElement("div");
-            line.className = "status-line";
-            line.innerHTML = `<span class="num">${cleanToken}</span><span class="tag ${isAvailable ? "available" : "not-found"}">${isAvailable ? "Available" : "Not Found"}</span>`;
-            statusPanel.appendChild(line);
-          }
-        });
-
-        if (validTokensFound === 0) {
-          statusPanel.innerHTML =
-            '<span class="text-slate-400 text-sm italic">Status will appear here...</span>';
-        }
-
-        detectedCountLabel.textContent = `(Found ${validTokensFound} codes)`;
-
-        // 3. Generate Status
-        let presentCount = 0;
-        let absentCount = 0;
-        const results = [];
-
-        // Build verification panel
-        verificationPanel.innerHTML = "";
-
-        masterLines.forEach((id) => {
-          const last4 = id.length >= 4 ? id.slice(-4) : id;
-          const isPresent = presentSet.has(last4);
-
-          results.push(isPresent ? "Present" : "Absent");
-          if (isPresent) presentCount++;
-          else absentCount++;
-
-          const line = document.createElement("div");
-          line.className = "verify-line";
-          line.innerHTML = `<span class="v-id">${id}</span><span class="v-arrow">&#8594;</span><span class="v-code">${isPresent ? last4 : "NA"}</span><span class="v-badge ${isPresent ? "present" : "absent"}">${isPresent ? "Present" : "Absent"}</span>`;
-          verificationPanel.appendChild(line);
-        });
-
-        // 4. Output
-        resultOutput.value = results.join("\n");
-        updateCounts(presentCount, absentCount);
-      }
-
-      function copyToClipboard() {
-        const text = resultOutput.value;
-        if (!text) return;
-
-        navigator.clipboard
-          .writeText(text)
-          .then(() => {
-            const originalText = copyBtn.innerHTML;
-            copyBtn.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                    </svg>
-                    Copied!
-                `;
-            copyBtn.classList.add("bg-slate-800");
-
-            setTimeout(() => {
-              copyBtn.innerHTML = originalText;
-              copyBtn.classList.remove("bg-slate-800");
-            }, 2000);
-          })
-          .catch(() => {
-            // Fallback for environments where clipboard API is unavailable
-            resultOutput.select();
-            document.execCommand("copy");
-          });
-      }
-    </script>
   </body>
 </html>
