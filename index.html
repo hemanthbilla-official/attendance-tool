@@ -3,104 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Server Maintenance | System Offline</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Server Down</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600&display=swap"
       rel="stylesheet"
     />
     <style>
       body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
         font-family: "Outfit", sans-serif;
-        background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+        overflow: hidden;
+        text-align: center;
       }
-      .glass-card {
-        background: rgba(30, 41, 59, 0.5);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+      .container {
+        position: relative;
+        z-index: 10;
       }
-      @keyframes pulse-red {
-        0%,
-        100% {
-          opacity: 1;
-          transform: scale(1);
-        }
-        50% {
-          opacity: 0.7;
-          transform: scale(1.05);
-        }
+      img {
+        max-width: 40vw;
+        max-height: 40vh;
+        box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8);
+        margin-bottom: 2rem;
       }
-      .status-dot {
-        animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      h1 {
+        font-weight: 600;
+        font-size: 2rem;
+      }
+      p {
+        font-weight: 300;
+        font-size: 1rem;
+        color: #666;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
       }
     </style>
   </head>
-  <body
-    class="min-h-screen flex items-center justify-center p-6 text-slate-200"
-  >
-    <div class="max-w-sm w-full text-center">
-      <div
-        class="glass-card rounded-2xl p-5 shadow-2xl relative overflow-hidden"
-      >
-        <!-- Decorative Light Leak -->
-        <div
-          class="absolute -top-24 -right-24 w-64 h-64 bg-red-500/10 rounded-full blur-3xl"
-        ></div>
-
-        <div class="relative z-10">
-          <!-- Status Badge -->
-          <div
-            class="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full mb-3"
-          >
-            <span class="w-1.5 h-1.5 bg-red-500 rounded-full status-dot"></span>
-            <span
-              class="text-[10px] font-bold uppercase tracking-widest text-red-400"
-              >System Critical</span
-            >
-          </div>
-
-          <!-- Main Content -->
-          <h1
-            class="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent leading-tight"
-          >
-            Server facing issues.
-          </h1>
-
-          <p
-            class="text-sm md:text-base text-slate-400 mb-4 font-light leading-relaxed"
-          >
-            Owner is
-            <span class="text-red-400 font-semibold italic">pissed off</span>.
-            <br />
-            Stay away until the mood improves.
-          </p>
-
-          <!-- Image Container -->
-          <div class="relative inline-block group">
-            <div
-              class="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-xl blur-lg group-hover:opacity-100 transition duration-1000 group-hover:duration-200"
-            ></div>
-            <img
-              src="frustated-cat.webp"
-              alt="Frustrated Cat"
-              class="relative rounded-xl w-full max-h-40 object-contain mx-auto shadow-2xl border border-white/5 transition-transform duration-500 hover:scale-[1.02]"
-            />
-          </div>
-
-          <!-- Technical Details -->
-          <div
-            class="mt-6 pt-4 border-t border-white/5 flex flex-col items-center gap-2 text-[9px] font-medium text-slate-500 uppercase tracking-widest"
-          >
-            <span>Code: 503 Service Unavailable</span>
-            <span>Action: Awaiting owner's calm</span>
-            <span>Priority: Absolute Zero</span>
-          </div>
-        </div>
-      </div>
-
-      <p class="mt-8 text-slate-600 text-sm font-medium">
-        &copy; 2026 Attendance Tool • Under Unplanned Maintenance
-      </p>
+  <body>
+    <div class="container">
+      <img src="frustated-cat.webp" alt="frustrated cat" />
+      <h1>Server is taking a nap.</h1>
     </div>
   </body>
 </html>
